@@ -1,47 +1,36 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { ref, onMounted } from 'vue'
+
+const users = ref([])
+const loading = ref(true)
+const error = ref('')
+
+async function cargarUsuarios() {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await fetch('https://jsonplaceholder.typicode.com/users')
+    if (!res.ok) throw new Error(`Error HTTP ${res.status}`)
+    users.value = await res.json()
+  } catch (e) {
+    error.value = 'No se pudo cargar: ' + e.message
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(cargarUsuarios)
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
   <main>
-    <TheWelcome />
+    <h1>Usuarios (Vue)</h1>
+    <p v-if="loading">Cargando…</p>
+    <p v-else-if="error" class="error">
+      {{ error }} <button @click="cargarUsuarios">Reintentar</button>
+    </p>
+    <ul v-else>
+      <li v-for="u in users" :key="u.id">{{ u.name }}</li>
+    </ul>
   </main>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
